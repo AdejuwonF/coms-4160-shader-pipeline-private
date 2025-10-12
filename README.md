@@ -232,7 +232,16 @@ on a boolean value (in this case `is_moon`).
 
 ![](images/bool-debug.png)
 
-## Bump and normal maps
+## Procedural shading
+
+In this assignment, we will be using the *fragment shader* to set the color of each pixel covered by each triangle in the scene. We will follow the different strategies seen in class: We will begin by using flat colors to differentiate each object (tasks up to `snap_to_sphere.tes`); after that, we will use the Blinn-Phong model to set a physically realistic color at each pixel (tasks up to `lit.fs`).
+
+To add even more surface and color detail to the objects using strategies seen in class, one could use texture maps and texture images downloaded from the internet. However, in this assignment, we will try something different: we will add detail *procedurally* using mathematical functions.
+The most common form of procedural shading is through *noise* functions that output numbers randomly generated from an input seed. Calling different noise functions for each of the R, G and B channels with different seeds produces an object with a *procedurally generated color* (see tasks up to `procedural_color.glsl`).
+
+Sometimes, changing the color of the object is not enough: we want to add *geometric* noise on the surface of an object. In the fragment shader, we can no longer displace the vertices of each triangle or the pixels that each triangle covers; however, we can *pretend* to do so by artificially changing the normal direction of the surface. Instead of of displacing the surface according to some noise function (a *bump map*), we ask "what would the surface normal look like if the surface *was* displaced according to said noise function?" and modify the surface normal accordingly (a *normal map*). A more detailed explanation of these two functions, including the formulas you will need to implement this assignment's tasks, follows below:
+
+### Bump and normal maps
 
 A **bump map** is a mapping from a surface point to a displacement along the
 normal direction. A **normal map** is a mapping from a surface point to a unit
@@ -269,12 +278,25 @@ by dividing by its length:
 
 <p align="center"><img src="/tex/509fb6a370666a6736bbb7ab34494d6f.svg?invert_in_darkmode&sanitize=true" align=middle width=71.52488145pt height=37.9216761pt/></p>
 
-> **Question:** Can we always recover _some_ orthogonal tangent vectors <img src="/tex/02f380174e367c8935a57f86907fc7da.svg?invert_in_darkmode&sanitize=true" align=middle width=13.15061054999999pt height=22.55708729999998pt/> and <img src="/tex/ff44d867a998c08241beb49b30148782.svg?invert_in_darkmode&sanitize=true" align=middle width=13.44741914999999pt height=22.55708729999998pt/> from
+<!-- > **Question:** Can we always recover _some_ orthogonal tangent vectors <img src="/tex/02f380174e367c8935a57f86907fc7da.svg?invert_in_darkmode&sanitize=true" align=middle width=13.15061054999999pt height=22.55708729999998pt/> and <img src="/tex/ff44d867a998c08241beb49b30148782.svg?invert_in_darkmode&sanitize=true" align=middle width=13.44741914999999pt height=22.55708729999998pt/> from
 > the unit normal 
 > <img src="/tex/b56595d2a30a0af329086562ca12d521.svg?invert_in_darkmode&sanitize=true" align=middle width=10.502226899999991pt height=14.611878600000017pt/> ?
 >
 > **Hint:** ☝️
->
+> -->
+
+### But what noise function or bump map height should I use?
+
+The reasoning above works for any noise bump map <img src="/tex/2ad9d098b937e46f9f58968551adac57.svg?invert_in_darkmode&sanitize=true" align=middle width=9.47111549999999pt height=22.831056599999986pt/>.
+In this assignment, we will create this function using [Perlin Noise](https://en.wikipedia.org/wiki/Perlin_noise), the most used noise pattern in Computer Graphics who won [our neighbor Ken Perlin](https://en.wikipedia.org/wiki/Ken_Perlin) an Academy Award.
+
+Perlin noise works in three steps: for any input 3D (seed) position, one first finds the integer grid cell that said point belongs to and generates random 3D vector directions at each of the corners of the cell (see `random_direction.glsl`).
+Then, one takes the dot products between these randomly generated vectors and the vector that goes from the seed point to each of the corners.
+Finally, one interpolates between all these dot products using a smoothed step function (see `smooth_step.glsl`).
+
+Implementing Perlin noise is the main complexity in this assignment. If you struggle, do not hesitate to post questions on Ed, look online for information or attend TA/professor office hours.
+There are several online exhaustive guides (see, e.g., [this](https://adrianb.io/2014/08/09/perlinnoise.html)) on the implementation of Perlin noise, although note that many use hash tables for random direction generation and we will instead use `random_direction.glsl`. 
+
 
 ## Tasks
 
@@ -318,6 +340,9 @@ image:
 
 ![](images/test-01.png)
 
+The first part of the assignment concerns building the correct matrices to place an object on the scene and project it on your screen.
+
+First, begin by implementing the gallery of homogeneous coordinate transformations that we saw in class:
 
 ### `src/identity.glsl`
 
@@ -329,9 +354,15 @@ image:
 
 ### `src/model.glsl`
 
+Here, you will choose a modeling transformation for the objects in our scene that changes over time: the moon should rotate around the planet and be displaced a constant amount from it.
+
 ### `src/model_view_projection.vs`
 
+This function should combine the modeling, view and projection matrices to transform any input vertex to its position on your screen. 
+
 ### `src/blue_and_gray.fs`
+
+This simple fragment shader (your first fragment shader!) should color the objects based on their identity: the moon is gray and the planet is blue.
 
 With these implemented you should now be able to run `./shaderpipeline
 ../data/test-02.json` and see an animation of a gray moon orbiting around a blue
@@ -354,21 +385,25 @@ triangles:
 ### `snap_to_sphere.tes`
 
 Move your model-view-projection operations from the vertex shader (e.g.,
-`model_view_projection.vs`) to the tessellation evaluation shader. In addition,
-snap the vertices of each shape to the unit sphere before applying these
-transformations. This gives your shapes a round appearance if you run
+`model_view_projection.vs`) to the tessellation evaluation shader, but this time,
+*snap the vertices of each shape to the unit sphere before applying these
+transformations* (hint: you can do this by dividing any point by its norm). This gives your shapes a round appearance if you run
 `./shaderpipeline ../data/test-04.json`: 
 
 ![](images/test-04.gif)
+
+We will now try to make the image more realistic. These functions implement the Blinn-Phong shading model formula that you already used in the ray tracing assignment, and add a rotating (sun) light.
 
 ### `blinn_phong.glsl`
 
 ### `lit.fs`
 
-Running `./shaderpipeline ../data/test-05.json` adds light to the scene and we
+Running `./shaderpipeline ../data/test-05.json` now adds light to the scene and we
 see a smooth appearance with specular highlights: 
 
 ![](images/test-05.gif)
+
+We will now add *procedural* detail in the scene's objects (see *Procedural shading* section above).
 
 ### `random_direction.glsl`
 
@@ -394,6 +429,8 @@ transformation. For example, this animation attempts to recreate a
 ### `improved_smooth_step.glsl`
 
 ### `improved_perlin_noise.glsl`
+
+(Note: this function should be identical to `perlin_noise.glsl`, but calling `improved_smooth_step.glsl`)
 
 ### `bump_height.glsl`
 
