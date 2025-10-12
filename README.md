@@ -343,7 +343,7 @@ If you press `L` this should switch to a [wireframe]() rendering:
 
 ![](images/test-02-wireframe.gif)
 
-### `src/5.tcs`
+### `src/5.tcs` *(Update Oct 12: This file is already provided for you)*
 
 Running `./shaderpipeline ../data/test-03.json` and pressing `L` should produce an
 animation of a gray moon orbiting around a blue planet in wireframe with more
