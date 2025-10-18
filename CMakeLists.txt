@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 set(ROOT "${CMAKE_CURRENT_LIST_DIR}")
 project(shaderpipeline)
 option(USE_SOLUTION "Use solution"  OFF)
