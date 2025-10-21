@@ -1,3 +1,4 @@
+// Given a (normal) vector, find any two other vectors that are orthogonal to it and to each other
 // Input:
 //   N  3D unit normal vector
 // Outputs:
