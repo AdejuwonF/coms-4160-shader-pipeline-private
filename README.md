@@ -438,6 +438,8 @@ transformation. For example, this animation attempts to recreate a
 
 ### `tangent.glsl`
 
+Given a (normal) vector, find any two other vectors that are orthogonal to it and to each other
+
 ### `bump.fs`
 
 Be creative! Your bumpy shape does not need to match the example.
