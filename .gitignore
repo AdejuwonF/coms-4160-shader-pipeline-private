@@ -32,6 +32,7 @@
 *.swo
 *.swp
 build/*
+build-release/*
 *.DS_Store
 file_watcher
 solution/*
