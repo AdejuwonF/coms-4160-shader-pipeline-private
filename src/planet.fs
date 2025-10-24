@@ -33,9 +33,12 @@ float compute_custom_bump_height(bool is_moon, vec3 s){
 vec3 compute_custom_bump_position(bool is_moon, vec3 s){
   float height;
   if (is_moon){
-    height = bump_height(is_moon, 10*s);
+    height = 3*bump_height(is_moon, s*vec3(2, 2, 2));
+    height += 0.5*bump_height(is_moon, s*vec3(8, 8 ,8));
   } else {
-    height = bump_height(is_moon, 10*s);
+    height = 1*bump_height(is_moon, s*vec3(1, 4 ,1));
+    height += 0.5*bump_height(is_moon, s*vec3(4, 4 ,4));
+    height += 0.25*bump_height(is_moon, s*vec3(8, 8 ,8));
   }
   return (1 + height)*s;
 }
@@ -57,11 +60,12 @@ void main()
   vec3 base_color, spec_color, new_sphere_pos, new_view_pos_fs_in, new_normal_fs_in;
 
   vec3 T, B;
+  vec3 unit_sphere_fs_in = normalize(sphere_fs_in);
   tangent(normalize(sphere_fs_in), T, B);
   float epsilon = 0.0001;
-  new_sphere_pos = compute_custom_bump_position(is_moon, sphere_fs_in);
-  vec3 dh_dT = (compute_custom_bump_position(is_moon, sphere_fs_in + epsilon*T) - new_sphere_pos) / epsilon;
-  vec3 dh_dB = (compute_custom_bump_position(is_moon, sphere_fs_in + epsilon*B) - new_sphere_pos) / epsilon;
+  new_sphere_pos = compute_custom_bump_position(is_moon, unit_sphere_fs_in);
+  vec3 dh_dT = (compute_custom_bump_position(is_moon, unit_sphere_fs_in + epsilon*T) - new_sphere_pos) / epsilon;
+  vec3 dh_dB = (compute_custom_bump_position(is_moon, unit_sphere_fs_in + epsilon*B) - new_sphere_pos) / epsilon;
   vec3 new_normal = normalize(cross(dh_dT, dh_dB));
 
   new_view_pos_fs_in = (view*model(is_moon, animation_seconds)*vec4(new_sphere_pos, 1)).xyz;
@@ -73,10 +77,12 @@ void main()
   } else {
     // Try to replicate the banding pattern on Jupiter
     // Also have it swwirl with time like the storms
-    if (length(new_sphere_pos) <= 1.0){
+    if (length(new_sphere_pos) <= 0.98){
       base_color = vec3(0, 0, 1);
-    } else {
+    } else if (length(new_sphere_pos)<= 1.02) {
       base_color = vec3(0, 1, 0);
+    } else {
+      base_color = vec3(1, 0, 0);
     }
   }
 

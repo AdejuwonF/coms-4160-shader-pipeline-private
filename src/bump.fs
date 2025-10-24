@@ -44,11 +44,12 @@ void main()
   }
 
   vec3 T, B;
-  tangent(normalize(sphere_fs_in), T, B);
+  vec3 unit_sphere_fs_in = normalize(sphere_fs_in);
+  tangent(unit_sphere_fs_in, T, B);
   float epsilon = 0.0001;
-  vec3 new_sphere_pos = bump_position(is_moon, sphere_fs_in);
-  vec3 dh_dT = (bump_position(is_moon, sphere_fs_in + epsilon*T) - new_sphere_pos) / epsilon;
-  vec3 dh_dB = (bump_position(is_moon, sphere_fs_in + epsilon*B) - new_sphere_pos) / epsilon;
+  vec3 new_sphere_pos = bump_position(is_moon, unit_sphere_fs_in);
+  vec3 dh_dT = (bump_position(is_moon, unit_sphere_fs_in + epsilon*T) - new_sphere_pos) / epsilon;
+  vec3 dh_dB = (bump_position(is_moon, unit_sphere_fs_in + epsilon*B) - new_sphere_pos) / epsilon;
   vec3 new_normal = normalize(cross(dh_dT, dh_dB));
 
   vec3 new_view_pos_fs_in = (view*model(is_moon, animation_seconds)*vec4(new_sphere_pos, 1)).xyz;
