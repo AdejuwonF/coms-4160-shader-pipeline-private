@@ -36,3 +36,4 @@ build-release/*
 *.DS_Store
 file_watcher
 solution/*
+*.zip

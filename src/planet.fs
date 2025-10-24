@@ -20,15 +20,15 @@ out vec3 color;
 // expects: model, blinn_phong, bump_height, bump_position,
 // improved_perlin_noise, tangent
 
-float compute_custom_bump_height(bool is_moon, vec3 s){
-  float height;
-  if (is_moon){
-    height = bump_height(is_moon, 10*s);
-  } else {
-    height = bump_height(is_moon, 10*s);
-  }
-  return height;
-}
+// float compute_custom_bump_height(bool is_moon, vec3 s){
+//   float height;
+//   if (is_moon){
+//     height = bump_height(is_moon, 10*s);
+//   } else {
+//     height = bump_height(is_moon, 10*s);
+//   }
+//   return height;
+// }
 
 vec3 compute_custom_bump_position(bool is_moon, vec3 s){
   float height;
@@ -38,7 +38,7 @@ vec3 compute_custom_bump_position(bool is_moon, vec3 s){
   } else {
     height = 1*bump_height(is_moon, s*vec3(1, 4 ,1));
     height += 0.5*bump_height(is_moon, s*vec3(4, 4 ,4));
-    height += 0.25*bump_height(is_moon, s*vec3(8, 8 ,8));
+    height += 0.1*bump_height(is_moon, s*vec3(8, 8, 8));
   }
   return (1 + height)*s;
 }
@@ -48,7 +48,7 @@ void main()
   /////////////////////////////////////////////////////////////////////////////
   // Replace with your code 
   float theta = mod(-animation_seconds*(0.25) * M_PI, 2*M_PI);
-  float phong = 1000.0;
+  float phong = 10.0;
   mat4 rotate_about_y = mat4(
     cos(theta),0,-sin(theta),0,
     0,         1,   0,       0,
@@ -70,23 +70,28 @@ void main()
 
   new_view_pos_fs_in = (view*model(is_moon, animation_seconds)*vec4(new_sphere_pos, 1)).xyz;
   new_normal_fs_in = (view*model(is_moon, animation_seconds)*vec4(new_normal, 0)).xyz;
-
+  spec_color = vec3(0.8, 0.8, 0.8);
   if (is_moon){
     // base_color = vec3(0.5,0.5,0.5);
     base_color = vec3(0.8, 0.8, 0.8);
   } else {
-    // Try to replicate the banding pattern on Jupiter
-    // Also have it swwirl with time like the storms
     if (length(new_sphere_pos) <= 0.98){
-      base_color = vec3(0, 0, 1);
+      base_color = vec3(35, 14, 227) / 255;
     } else if (length(new_sphere_pos)<= 1.02) {
-      base_color = vec3(0, 1, 0);
+      base_color = vec3(133, 8, 45)/255;
     } else {
-      base_color = vec3(1, 0, 0);
+      base_color = vec3(1, 1, 1);
+    }
+    float glow_height = bump_height(is_moon, unit_sphere_fs_in*vec3(1, 5, 1) + 0.25*mod(animation_seconds, 1000.0));
+    if (glow_height > 0){
+      base_color = vec3(8, 64, 133)/255;
+      spec_color = vec3(8, 64, 133)/255;
+      phong = 100;
     }
   }
 
-  color = blinn_phong(base_color, base_color, vec3(0.8, 0.8, 0.8), 
+
+  color = blinn_phong(base_color, base_color, spec_color, 
     /*phong*/ phong, 
     normalize(new_normal_fs_in), 
     normalize(-new_view_pos_fs_in.xyz), 

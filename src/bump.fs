@@ -38,8 +38,6 @@ void main()
     // base_color = vec3(0.5,0.5,0.5);
     base_color = vec3(0.8, 0.8, 0.8);
   } else {
-    // Try to replicate the banding pattern on Jupiter
-    // Also have it swwirl with time like the storms
     base_color = vec3(0, 0, 1);
   }
 
