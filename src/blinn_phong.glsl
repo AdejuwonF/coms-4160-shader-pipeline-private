@@ -23,11 +23,11 @@ vec3 blinn_phong(
   /////////////////////////////////////////////////////////////////////////////
   // Replace with your code 
   vec3 light_color = vec3(1, 1, 1);
-  float Ia = 0.1;
+  float Ia = 0.2;
   vec3 color = vec3(0, 0, 0);
 
   // Ambient
-  color += ka*0.1;
+  color += ka*Ia;
   // Diffuse
   color += kd * light_color * max(0.0, dot(n, l));
   vec3 h = normalize(v + l);

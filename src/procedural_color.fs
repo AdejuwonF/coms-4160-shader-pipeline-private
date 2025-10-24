@@ -7,10 +7,11 @@ uniform mat4 proj;
 uniform float animation_seconds;
 uniform bool is_moon;
 // Inputs:
-in vec3 sphere_fs_in;
-in vec3 normal_fs_in;
-in vec4 pos_fs_in; 
-in vec4 view_pos_fs_in; 
+in vec3 sphere_fs_in; // 3D position _before_ applying model, view or projection  
+                      // transformations (e.g., point on unit sphere)
+in vec3 normal_fs_in; // view and model transformed 3D normal
+in vec4 pos_fs_in;  //  projected, view, and model transformed 3D position
+in vec4 view_pos_fs_in; // view and model transformed 3D position
 // Outputs:
 out vec3 color;
 
@@ -19,6 +20,38 @@ void main()
 {
   /////////////////////////////////////////////////////////////////////////////
   // Replace with your code 
-  color = vec3(1,1,1);
+  float theta = mod(-animation_seconds*(0.25) * M_PI, 2*M_PI);
+  float phong = 1000.0;
+  mat4 rotate_about_y = mat4(
+    cos(theta),0,-sin(theta),0,
+    0,         1,   0,       0,
+    sin(theta),0,cos(theta), 0,
+    0,         0,    0,      1);
+  vec3 world_space_light_direction = (rotate_about_y * vec4(1, 1, 0, 0)).xyz;
+  vec3 view_space_light_direction = (view*vec4(world_space_light_direction, 0)).xyz;
+  float top_level_noise;
+  vec3 base_color, spec_color;
+  if (is_moon){
+    // base_color = vec3(0.5,0.5,0.5);
+    top_level_noise = (perlin_noise(vec3(3*sphere_fs_in.x, 3*sphere_fs_in.y, 3*sphere_fs_in.z)) + 1.0) / 2.0;
+    base_color = top_level_noise * vec3(0.8, 0.8, 0.8);
+    // Have highlights fade away in darker regions
+    phong = mix(1, 1000, (top_level_noise));
+    spec_color = mix(vec3(0.01, 0.01, 0.01), vec3(0.8, 0.8, 0.8), clamp(top_level_noise-0.4, 0, 1));
+    // spec_color = vec3(0, 0, 0);
+  } else {
+    // Try to replicate the banding pattern on Jupiter
+    // Also have it swwirl with time like the storms
+    top_level_noise = (perlin_noise(vec3(sphere_fs_in.x/10 + 1*animation_seconds, 7*sphere_fs_in.y + animation_seconds/30, sphere_fs_in.z+100 + animation_seconds/30)) + 1.0) / 2.0;
+    base_color = mix(vec3(1, 0.35, 0.0), vec3(.7, .7, .7), smooth_step(top_level_noise));
+    spec_color = vec3(0.8, 0.8, 0.8);
+  }
+
+
+  color = blinn_phong(base_color, base_color, spec_color, 
+    /*phong*/ phong, 
+    normalize(normal_fs_in), 
+    normalize(-view_pos_fs_in.xyz), 
+    normalize(view_space_light_direction));
   /////////////////////////////////////////////////////////////////////////////
 }

@@ -10,6 +10,12 @@ vec3 random_direction( vec3 seed)
 {
   /////////////////////////////////////////////////////////////////////////////
   // Replace with your code 
-  return vec3(1,0,0);
+  // Treat samples as theta and phi in spherical coords then convert to Cartesian
+  // https://mathworld.wolfram.com/SpherePointPicking.html. (requires acos)
+  vec2 random = random2(seed);
+  float phi = M_PI * 2 * random.x;
+  float theta = acos(2*random.y - 1);
+
+  return vec3(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta));
   /////////////////////////////////////////////////////////////////////////////
 }

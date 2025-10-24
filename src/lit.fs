@@ -20,14 +20,14 @@ void main()
   /////////////////////////////////////////////////////////////////////////////
   // Replace with your code 
   // Copied from rotate_about_y which isn't be imported?
-  float theta = mod(animation_seconds*(0.25) * M_PI, 2*M_PI);
+  float theta = mod(-animation_seconds*(0.25) * M_PI, 2*M_PI);
   mat4 rotate_about_y = mat4(
     cos(theta),0,-sin(theta),0,
     0,         1,   0,       0,
     sin(theta),0,cos(theta), 0,
     0,         0,    0,      1);
   vec3 world_space_light_direction = (rotate_about_y * vec4(1, 1, 0, 0)).xyz;
-    // (rotate_about_y(mod(animation_seconds*(1.0) * M_PI, 2*M_PI)) * vec4(0, 1, 1, 0)).xyz;
+  // vec3 world_space_light_direction = vec4(0, 0, 1, 0).xyz;
 
   vec3 view_space_light_direction = (view*vec4(world_space_light_direction, 0)).xyz;
   vec3 base_color = vec3(0, 0, 1);
